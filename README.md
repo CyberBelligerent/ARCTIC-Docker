@@ -36,3 +36,15 @@ Access the UI at:
 ```
 http://localhost
 ```
+
+## Provider Usage
+
+**If using http / IP only, this can be skipped**
+If using HTTPs, odds are, you're using DNS rather than IP address. To make sure ARCTIC can talk to your provider over DNS ensure to add the following setting inside of your docker-compose.yml file:
+```yml
+  arctic-app:
+    extra_hosts:
+      - "{DNS_NAME}:{IP}"
+```
+
+Then, when connecting to a providers endpoint, use the DNS name instead of the IP address!
