@@ -37,14 +37,29 @@ Access the UI at:
 http://localhost
 ```
 
-## Provider Usage
+## Provider Usage (DNS & HTTPS)
 
-**If using http / IP only, this can be skipped**
-If using HTTPs, odds are, you're using DNS rather than IP address. To make sure ARCTIC can talk to your provider over DNS ensure to add the following setting inside of your docker-compose.yml file:
-```yml
+**If your provider endpoint is accessed via HTTP using an IP address, this step can be skipped**
+
+If your provider endpoint uses HTTPS, it will almost always rely on a DNS name. In this case, ARCTIC must be able to resolve the DNS name from inside the Docker container.
+
+To ensure ARCTIC can resolve the provider hostname, add an `extra_hosts` entry to your `docker-compose.yml`:
+```yaml
   arctic-app:
     extra_hosts:
       - "{DNS_NAME}:{IP}"
 ```
 
-Then, when connecting to a providers endpoint, use the DNS name instead of the IP address!
+**Example**
+```yaml
+  arctic-app:
+    extra_hosts:
+      - "openstack.example.lab:192.168.1.210"
+```
+
+When setting the provider enpoint inside of ARCTIC, **use the DNS name** (`openstack.example.local:5000/v3`) as the endpoint, NOT the IP address.
+
+This makes sure the following:
+- TLS certificate hostname validation succeeds
+- ARCTIC connects to the correct provider endpoint
+- No reliance on external DNS inside the container
