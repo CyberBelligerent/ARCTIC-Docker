@@ -26,22 +26,23 @@ services:
       mysql:
         condition: service_healthy
     environment:
+      # These really shouldn't be changed
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
 
+      # Really a good idea to change these
       ARCTIC_ADMIN_USERNAME: ${ARCTIC_ADMIN_USERNAME}
       ARCTIC_ADMIN_PASSWORD: ${ARCTIC_ADMIN_PASSWORD}
+      TRUSTSTORE_PASSWORD: ${ARCTIC_TRUSTSTORE_PASSWORD}
 
+      # Not required, automatically sest to these defaults in image
       CERTS_DIR: /certs
       TRUSTSTORE_PATH: /opt/arctic/truststore.p12
-      TRUSTSTORE_PASSWORD: changeit
       TRUSTSTORE_TYPE: PKCS12
       IMPORT_TARGET: truststore
-
       APP_CMD: "java -jar /app/app.jar"
     volumes:
       - ./providers:/app/providers:ro
