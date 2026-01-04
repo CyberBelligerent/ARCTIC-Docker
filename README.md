@@ -2,6 +2,8 @@
 
 ARCTIC's official installation guide using Docker.
 
+ARCTIC's main repo can be found [here](https://github.com/CyberBelligerent/ARCTIC)
+
 ## Installation
 
 Notes
