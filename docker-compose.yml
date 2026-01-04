@@ -1,0 +1,75 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: arctic-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - arctic_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  arctic-app:
+    image: ghcr.io/cyberbelligerent/arctic:latest
+    container_name: arctic-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+
+      ARCTIC_ADMIN_USERNAME: ${ARCTIC_ADMIN_USERNAME}
+      ARCTIC_ADMIN_PASSWORD: ${ARCTIC_ADMIN_PASSWORD}
+
+      CERTS_DIR: /certs
+      TRUSTSTORE_PATH: /opt/arctic/truststore.p12
+      TRUSTSTORE_PASSWORD: changeit
+      TRUSTSTORE_TYPE: PKCS12
+      IMPORT_TARGET: truststore
+
+      APP_CMD: "java -jar /app/app.jar"
+    volumes:
+      - ./providers:/app/providers:ro
+      - ./certs:/certs:ro
+      - arctic-truststore:/opt/arctic
+    expose:
+      - "8080"
+    networks:
+      - arctic_net
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: arctic-nginx
+    restart: unless-stopped
+    depends_on:
+      - arctic-app
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./landscape:/var/www/html:ro
+    networks:
+      - arctic_net
+
+volumes:
+  mysql_data:
+  arctic-truststore:
+
+networks:
+  arctic_net:
+    driver: bridge
